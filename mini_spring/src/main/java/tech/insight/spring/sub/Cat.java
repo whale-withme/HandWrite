@@ -1,4 +1,3 @@
-
 package tech.insight.spring.sub;
 
 import tech.insight.spring.Autowired;
@@ -8,15 +7,13 @@ import tech.insight.spring.PostConstruct;
 /**
  *  
  */
-@Component(name = "dog")
-public class Dog {
-
+@Component
+public class Cat {
     @Autowired
-    private Cat cat;
-    
-    @PostConstruct
-    public void init(){
-        System.out.println("dog @postConstruct execute, autowired Filed: " + cat);
-    }
+    private Dog dog;
 
+    @PostConstruct
+    public void init() {
+        System.out.println("Cat创建了 cat里面有一个属性" + dog);
+    }
 }

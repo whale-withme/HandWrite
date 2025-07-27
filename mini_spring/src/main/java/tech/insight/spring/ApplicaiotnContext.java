@@ -3,6 +3,7 @@ package tech.insight.spring;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -26,30 +27,45 @@ public class ApplicaiotnContext {
 
     private final Map<String, BeanDefinition> beanDefnitionMap = new HashMap<>();
 
+    private final Map<String, Object> loadingIoc = new HashMap<>();
+
     ApplicaiotnContext(String packageName) throws Exception {
         scanPackage(packageName).stream()
                 .filter(f -> f.isAnnotationPresent(Component.class))
                 .forEach(this::wrapper);
-        beanDefnitionMap.values().stream().forEach(this::createBean);
+        beanDefnitionMap.values().forEach(this::createBean);
     }
 
-    private void createBean(BeanDefinition beanDefinition) {
+    private Object createBean(BeanDefinition beanDefinition) {
         Object bean = null;
         if (ioc.containsKey(beanDefinition.getName())) {
-            throw new RuntimeException("ioc container exists object bean");
+            return ioc.get(beanDefinition.getName());
+        }
+
+        if(loadingIoc.containsKey(beanDefinition.getName())){
+            return loadingIoc.get(beanDefinition.getName());
         }
 
         Constructor<?> constructor = beanDefinition.getConstructor();
         try {
             bean = constructor.newInstance();
+            loadingIoc.put(beanDefinition.getName(), bean);
+            autowireInit(bean, beanDefinition);
             Util.Dprintf(beanDefinition.getName() + "初始化");
             bean = initializeBean(bean, beanDefinition); // 初始化bean
-
+            loadingIoc.remove(beanDefinition.getName());
+            ioc.put(beanDefinition.getName(), bean);
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
-        ioc.put(beanDefinition.getName(), bean);
-        return;
+        return bean;
+    }
+
+    private void autowireInit(Object bean, BeanDefinition beanDefinition) throws IllegalArgumentException, IllegalAccessException {
+        for(Field autowiredField : beanDefinition.getAutowiredFields()){
+            autowiredField.setAccessible(true);
+            autowiredField.set(bean, getBean(autowiredField.getType()));
+        }
     }
 
     private Object initializeBean(Object bean, BeanDefinition beanDefinition) throws Exception {
@@ -110,14 +126,14 @@ public class ApplicaiotnContext {
         }
 
         if(beanDefnitionMap.containsKey(name)){
-            createBean(beanDefnitionMap.get(name));
+            return createBean(beanDefnitionMap.get(name));
         }
         return null;
     }
 
     public <T> T getBean(Class<T> type) {
         String beandefName = beanDefnitionMap.values().stream()
-                .filter(bd -> type.isAssignableFrom(bd.getClass()))
+                .filter(bd -> type.isAssignableFrom(bd.getBeanType()))
                 .map(BeanDefinition::getName)
                 .findFirst().orElse(null);
         return (T)getBean(beandefName);     // 方法重载给name创建
