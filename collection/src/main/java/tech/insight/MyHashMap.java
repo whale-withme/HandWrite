@@ -14,7 +14,6 @@ public class MyHashMap<K, V> {
             table[index] = new Node<>(key, value);
             size++;
             resizeNecessary();
-            ;
             return value;
         } else {
             Node<K, V> newNode = new Node<>(key, value);
@@ -126,13 +125,15 @@ public class MyHashMap<K, V> {
 
             Node<K, V> current = head;
             while (current != null) {
+                // 取代模运算，提升性能
                 int newIndex = current.key.hashCode() & (newTable.length - 1);
                 if (newTable[newIndex] == null) {
                     newTable[newIndex] = current;
                     Node<K, V> nextNode = current.next;
-                    current.next = null;
+                    current.next = null; // 新链表只放一个元素
                     current = nextNode;
                 } else {
+                    // 头插法
                     Node<K, V> nextNode = current.next;
                     current.next = newTable[newIndex];
                     newTable[newIndex] = current;
