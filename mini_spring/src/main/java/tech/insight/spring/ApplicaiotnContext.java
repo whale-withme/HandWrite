@@ -48,7 +48,7 @@ public class ApplicaiotnContext {
 
         Constructor<?> constructor = beanDefinition.getConstructor();
         try {
-            bean = constructor.newInstance();
+            bean = constructor.newInstance();   // 调用无参构造器创建一个实例，包含了私有属性但是非autowiredFileds
             loadingIoc.put(beanDefinition.getName(), bean);
             autowireInit(bean, beanDefinition);
             Util.Dprintf(beanDefinition.getName() + "初始化");
@@ -79,9 +79,7 @@ public class ApplicaiotnContext {
 
     /*
      * class类创建beandefinition
-     * 
      * @param type
-     * 
      * @return beanDefinition
      */
     protected BeanDefinition wrapper(Class<?> type) {
