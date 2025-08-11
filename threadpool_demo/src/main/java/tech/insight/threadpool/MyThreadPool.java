@@ -1,5 +1,6 @@
 package tech.insight.threadpool;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -14,18 +15,16 @@ public class MyThreadPool {
     private final int maxsize;
     private final int time;
     private final TimeUnit timeUnit;
-    private final BlockingQueue<Runnable> blockingQueue;
-    public final List<Thread> coreList;
-    public final List<Thread> supportList;
+    public final BlockingQueue<Runnable> blockingQueue;
+    public final List<Thread> coreList = new ArrayList<>(1024);
+    public final List<Thread> supportList = new ArrayList<>(1024);
     private final RejectHanle rejectHanle;
 
     public MyThreadPool(int coresize, int maxsize, int time, TimeUnit timeUnit, RejectHanle rejectHanle,
-    BlockingQueue<Runnable> blockingQueue, List<Thread> coreList, List<Thread> supportList){
+    BlockingQueue<Runnable> blockingQueue){
         this.coresize = coresize;
         this.maxsize = maxsize;
         this.blockingQueue = blockingQueue;
-        this.coreList = coreList;
-        this.supportList = supportList;
         this.time = time;
         this.timeUnit = timeUnit;
         this.rejectHanle = rejectHanle;
